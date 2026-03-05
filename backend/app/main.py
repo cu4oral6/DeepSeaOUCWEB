@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from app.config import get_settings
 from app.schemas import ChatRequest, ChatResponse, LoginRequest, LoginResponse
@@ -43,6 +45,18 @@ def _is_unauthorized_error(message: str) -> bool:
 
 
 settings = get_settings()
+backend_dir = Path(__file__).resolve().parents[1]
+
+
+def _resolve_frontend_dist_dir() -> Path:
+    configured = Path(settings.frontend_dist_dir)
+    if configured.is_absolute():
+        return configured
+    return (backend_dir / configured).resolve()
+
+
+frontend_dist_dir = _resolve_frontend_dist_dir()
+frontend_index_file = frontend_dist_dir / "index.html"
 app = FastAPI(
     title="DeepSea OUC MCP Chat API",
     version="0.1.0",
@@ -111,3 +125,26 @@ async def chat(request_data: ChatRequest, request: Request) -> ChatResponse:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     finally:
         await mcp_client.aclose()
+
+
+if frontend_index_file.is_file():
+    resolved_frontend_dist = frontend_dist_dir.resolve()
+
+    @app.get("/", include_in_schema=False)
+    async def frontend_root() -> FileResponse:
+        return FileResponse(frontend_index_file)
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def frontend_files(full_path: str):
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        candidate = (resolved_frontend_dist / full_path).resolve()
+        try:
+            candidate.relative_to(resolved_frontend_dist)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail="Not Found") from exc
+
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(frontend_index_file)

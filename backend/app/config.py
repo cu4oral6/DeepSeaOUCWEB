@@ -37,6 +37,10 @@ class Settings(BaseSettings):
         default="http://localhost:5173,http://127.0.0.1:5173",
         validation_alias="CORS_ORIGINS",
     )
+    frontend_dist_dir: str = Field(
+        default="../frontend/dist",
+        validation_alias="FRONTEND_DIST_DIR",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

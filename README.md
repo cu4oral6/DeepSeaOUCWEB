@@ -60,6 +60,36 @@ If your backend is not on `http://127.0.0.1:8000`, set:
 VITE_API_BASE_URL=http://your_backend_host:8000 npm run dev
 ```
 
+## 3) Deploy without Nginx (FastAPI serves frontend)
+
+Build frontend once:
+
+```bash
+cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/frontend
+npm install
+npm run build
+```
+
+Set backend `.env`:
+
+```env
+FRONTEND_DIST_DIR=../frontend/dist
+```
+
+Then run only backend:
+
+```bash
+cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/backend
+uvicorn app.main:app --host 0.0.0.0 --port 8001
+```
+
+Now:
+
+- `http://your_host:8001/` serves frontend
+- `http://your_host:8001/api/*` serves API
+
+If `frontend/dist/index.html` does not exist, backend only serves API.
+
 ## API endpoints
 
 - `GET /api/health`
@@ -87,9 +117,20 @@ When the model emits `tool_calls`, backend will invoke MCP `tools/call`, append 
 ## Login and token flow
 
 - Frontend calls `POST /api/auth/login` with:
-  - `{"username":"2125","password":"123456"}`
+  - `{"username":"21250213227","password":"123456"}`
 - Backend forwards to MCP `/login`, returns:
   - `access_token`, `user_id`, `expires_in=7200`, `expires_at`
 - Frontend stores token in `localStorage` and auto-removes after 2 hours.
 - Frontend sends `Authorization: Bearer <access_token>` on `/api/chat` and `/api/mcp/tools`.
 - If no token (or token invalid), backend returns `401`, frontend shows login page.
+
+## npm 404 fix
+
+If `npm install` reports registry 404, reset npm registry:
+
+```bash
+npm config set registry https://registry.npmjs.org/
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
+```
