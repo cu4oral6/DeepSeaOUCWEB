@@ -26,8 +26,8 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(default_factory=list)
     model: str | None = None
     temperature: float = 0.7
-    max_tokens: int = 1024
-    max_steps: int = 5
+    max_tokens: int = 2048
+    max_steps: int = 8
     use_mcp: bool = True
 
 

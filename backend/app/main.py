@@ -44,6 +44,11 @@ def _is_unauthorized_error(message: str) -> bool:
     return "401" in text or "unauthorized" in text or "forbidden" in text
 
 
+def _is_timeout_error(message: str) -> bool:
+    text = message.lower()
+    return "timeout" in text or "timed out" in text
+
+
 settings = get_settings()
 backend_dir = Path(__file__).resolve().parents[1]
 
@@ -114,6 +119,7 @@ async def chat(request_data: ChatRequest, request: Request) -> ChatResponse:
         siliconflow_client=siliconflow_client,
         mcp_client=mcp_client,
         default_model=settings.siliconflow_model,
+        user_access_token=token,
     )
     try:
         return await orchestrator.run_chat(request_data)
@@ -122,6 +128,8 @@ async def chat(request_data: ChatRequest, request: Request) -> ChatResponse:
     except RuntimeError as exc:
         if _is_unauthorized_error(str(exc)):
             raise HTTPException(status_code=401, detail=str(exc)) from exc
+        if _is_timeout_error(str(exc)):
+            raise HTTPException(status_code=504, detail=str(exc)) from exc
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     finally:
         await mcp_client.aclose()

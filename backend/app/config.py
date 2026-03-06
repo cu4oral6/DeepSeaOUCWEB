@@ -16,7 +16,7 @@ class Settings(BaseSettings):
         validation_alias="SILICONFLOW_MODEL",
     )
     siliconflow_timeout_seconds: float = Field(
-        default=60.0,
+        default=180.0,
         validation_alias="SILICONFLOW_TIMEOUT_SECONDS",
     )
 
