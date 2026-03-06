@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const AUTH_STORAGE_KEY = "deepsea_mcp_auth";
 const TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 
@@ -188,8 +189,8 @@ export default function App() {
           messages: payload.requestMessages,
           model,
           temperature: 0.7,
-          max_tokens: 1024,
-          max_steps: 5,
+          max_tokens: 2048,
+          max_steps: 8,
           use_mcp: true,
         }),
       });
@@ -279,10 +280,15 @@ export default function App() {
 
           <div className="messages">
             {messages.map((msg, idx) => (
-              <article key={`${msg.role}-${idx}`} className={`bubble ${msg.role}`}>
-                <div className="role">{msg.role}</div>
-                <pre>{msg.content}</pre>
-              </article>
+              <article key={idx} className={`bubble ${msg.role}`}>
+  <div className="role">{msg.role}</div>
+  {/* 将原有的 <pre> 替换为 ReactMarkdown */}
+  <div className="markdown-body">
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      {msg.content}
+    </ReactMarkdown>
+  </div>
+</article>
             ))}
           </div>
 
