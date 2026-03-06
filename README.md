@@ -1,136 +1,137 @@
-# DeepSea OUC MCP Chat
+# 🌊 DeepSeaOUC
 
-A full-stack web chat app built with Python + React.
+**DeepSeaOUC** 是一个面向 **中国海洋大学（Ocean University of China, OUC）** 的  
+👉 **多源校园信息聚合 + 个人知识库 + RAG 智能问答系统**。
 
-- Backend: FastAPI
-- Frontend: React + Vite
-- LLM: SiliconFlow Chat Completions API
-- Tool calling: MCP server via JSON-RPC over HTTP
+项目通过自动化采集校园公开信息（学校官网、学院网站、教务通知等），
+并结合学生个人学业数据（如成绩、课表），
+构建统一的校园知识库，提供 **可追溯、可更新、可问答** 的智能校园助手。
 
-## 1) Configure backend
+---
 
-```bash
-cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-```
+## ✨ 项目特性
 
-Edit `.env` and set at least:
+- 🕷️ **多源校园信息爬取**
+  - 学校官网新闻 / 通知公告
+  - 学院、教务处、图书馆等站点
+  - 支持增量更新与去重
 
-```env
-SILICONFLOW_API_KEY=your_real_key
-```
+- 📚 **个人校园知识库**
+  - 校园公告、制度文件、讲座信息
+  - 学生个人成绩 / 课程数据（仅限本人）
+  - 私有数据与公共数据严格隔离
 
-`MCP_SERVER_URL` is already set to:
+- 🧠 **基于 RAG 的智能问答**
+  - 关键词 + 向量混合检索
+  - 支持时间敏感信息优先
+  - 回答附带来源与发布时间
 
-```env
-http://100.68.129.231:8000/mcp
-```
+- 🔐 **合规与隐私优先**
+  - 仅爬取公开校园信息
+  - 个人数据通过导入或授权自动化同步
+  - 本地存储、可控、可删除
 
-`MCP_LOGIN_URL` default:
+---
 
-```env
-http://100.68.129.231:8000/login
-```
+## 🧩 系统架构
 
-Start backend:
+数据采集层
+├─ 校园网站爬虫（Scrapy / Playwright）
+├─ 个人数据导入 / 同步（成绩、课表）
+↓
+数据处理层
+├─ 内容清洗与结构化
+├─ 文档切分与去重
+↓
+知识存储层
+├─ 原始文档库（HTML / PDF / 附件）
+├─ 元数据库（SQLite / PostgreSQL）
+├─ 向量数据库（Chroma / FAISS）
+↓
+RAG 问答层
+├─ 混合检索（BM25 + Embedding）
+├─ 上下文构建
+├─ 大模型生成
+↓
+应用层
+├─ Web UI / API
+└─ 校园智能问答助手
 
-```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+yaml
+复制代码
 
-## 2) Start frontend
+---
 
-```bash
-cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/frontend
-npm install
-cp .env.example .env
-npm run dev
-```
+## 🗂️ 项目结构
 
-Open:
+DeepSeaOUC/
+├── crawler/ # 校园网站爬虫
+├── sync/ # 个人数据同步 / 导入
+├── parser/ # 文档解析与清洗
+├── knowledge/ # 知识库与向量索引
+├── rag/ # RAG 检索与生成逻辑
+├── api/ # 后端接口
+├── web/ # 前端界面
+├── data/ # 本地数据与缓存
+├── config/ # 配置文件
+└── README.md
 
-- [http://localhost:5173](http://localhost:5173)
+yaml
+复制代码
 
-If your backend is not on `http://127.0.0.1:8000`, set:
+---
 
-```bash
-VITE_API_BASE_URL=http://your_backend_host:8000 npm run dev
-```
+## 🧪 示例问题
 
-## 3) Deploy without Nginx (FastAPI serves frontend)
+- “最近一周学校有哪些讲座？”
+- “转专业的申请条件和截止时间是什么？”
+- “本学期我的 GPA 是多少？”
+- “奖学金评定对绩点有什么要求？”
 
-Build frontend once:
+---
 
-```bash
-cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/frontend
-npm install
-npm run build
-```
+## 🛠️ 技术选型（可调整）
 
-Set backend `.env`:
+- **语言**：Python 3.10+
+- **爬虫**：Scrapy / Playwright
+- **解析**：BeautifulSoup / trafilatura
+- **数据库**：SQLite / PostgreSQL
+- **向量库**：Chroma / FAISS
+- **RAG**：Hybrid Retrieval + LLM
+- **前端**：❌ TODO
+- **模型**：❌ TODO（如 OpenAI / 本地大模型）
 
-```env
-FRONTEND_DIST_DIR=../frontend/dist
-```
+---
 
-Then run only backend:
+## 🔐 合规与声明
 
-```bash
-cd /Users/xander/studypace/pyproject/DeapSeaOUCWEB/backend
-uvicorn app.main:app --host 0.0.0.0 --port 8001
-```
+- 本项目 **仅用于学习与研究目的**
+- 仅采集 **学校公开发布的信息**
+- 学生个人数据仅限 **本人授权使用**
+- 不涉及任何形式的账号破解、数据倒卖或非法传播
 
-Now:
+---
 
-- `http://your_host:8001/` serves frontend
-- `http://your_host:8001/api/*` serves API
+## 🚀 未来计划
 
-If `frontend/dist/index.html` does not exist, backend only serves API.
+- [ ] 支持更多校园站点模板
+- [ ] 增加时间轴 / 订阅式更新
+- [ ] 增强个人学业分析能力
+- [ ] 支持多终端访问（Web / Bot）
+- [ ] 可视化校园信息仪表盘
 
-## API endpoints
+---
 
-- `GET /api/health`
-- `POST /api/auth/login`
-- `GET /api/mcp/tools`
-- `POST /api/chat`
+## 📌 项目名称说明
 
-## Chat request body example
+**DeepSeaOUC**  
+- *DeepSea*：象征对校园信息“深度挖掘与理解”  
+- *OUC*：中国海洋大学  
 
-```json
-{
-  "messages": [
-    {"role": "user", "content": "What tools do you have?"}
-  ],
-  "model": "Qwen/Qwen3-8B",
-  "temperature": 0.7,
-  "max_tokens": 1024,
-  "max_steps": 5,
-  "use_mcp": true
-}
-```
+寓意：在信息的海洋中，构建属于 OUC 的智能知识助手 🌊
 
-When the model emits `tool_calls`, backend will invoke MCP `tools/call`, append results as `tool` messages, and then continue inference to generate final answer.
+---
 
-## Login and token flow
+## 📄 License
 
-- Frontend calls `POST /api/auth/login` with:
-  - `{"username":"21250213227","password":"123456"}`
-- Backend forwards to MCP `/login`, returns:
-  - `access_token`, `user_id`, `expires_in=7200`, `expires_at`
-- Frontend stores token in `localStorage` and auto-removes after 2 hours.
-- Frontend sends `Authorization: Bearer <access_token>` on `/api/chat` and `/api/mcp/tools`.
-- If no token (or token invalid), backend returns `401`, frontend shows login page.
-
-## npm 404 fix
-
-If `npm install` reports registry 404, reset npm registry:
-
-```bash
-npm config set registry https://registry.npmjs.org/
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
-```
+❌ TODO
